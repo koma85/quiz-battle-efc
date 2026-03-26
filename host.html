@@ -196,12 +196,16 @@ async function loadQuestions() {
 }
 
 async function postState(phase, idx) {
-  await fetch(GAS_URL, {
+  const body = JSON.stringify({ action: 'setState', phase, qIndex: idx, referer: location.origin });
+  console.log('postState:', body);
+  const res = await fetch(GAS_URL, {
     method: 'POST',
-    body: JSON.stringify({ action: 'setState', phase, qIndex: idx, referer: location.origin }),
+    body,
   });
+  const text = await res.text();
+  console.log('postState response:', text);
 }
-
+  
 async function hostStart() {
   qIndex = 0;
   await postState('question', 0);
