@@ -254,7 +254,7 @@ function pollAnswers() {
   const poll = setInterval(async () => {
     if (document.getElementById('screen-question').classList.contains('active')) {
       try {
-        const res = await fetch(`${GAS_URL}?type=ranking`);
+        const res = await fetch(`${GAS_URL}?type=ranking&referer=${location.origin}`);
         const data = await res.json();
         const count = data.filter(p => p.qIndex === qIndex).length;
         document.getElementById('ans-count').textContent = count;
