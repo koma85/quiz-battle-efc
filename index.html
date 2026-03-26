@@ -188,6 +188,7 @@ function startPolling() {
 }
 
 async function syncState() {
+  console.log('syncState called');
   try {
     const res = await fetch(`${GAS_URL}?type=state&referer=${location.origin}`);
     const data = await res.json();
