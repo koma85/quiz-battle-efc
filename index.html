@@ -185,27 +185,23 @@ async function joinGame() {
 function startPolling() {
   console.log('polling start');
   if (pollInterval) clearInterval(pollInterval);
-  pollInterval = setInterval(syncState, 2500);
-}
+  pollInterval = setInterval(syncState, 2500);}
 
 async function syncState() {
   console.log('syncState called');
   try {
     const res = await fetch(`${GAS_URL}?type=state&referer=${location.origin}`);
-    console.log('fetch status:', res.status);
-    const text = await res.text();
-    console.log('response text:', text);
-    const data = JSON.parse(text);
+    const data = await res.json();
     const { phase, qIndex: qi } = data;
     if (phase === lastPhase && qi === lastQIndex) return;
     lastPhase = phase;
     lastQIndex = qi;
     handlePhase(phase, qi);
   } catch(e) {
-    console.log('syncState error:', e.message);
+   console.log('syncState error:', e.message);
   }
 }
-  
+
 function handlePhase(phase, qi) {
   if (phase === 'question') {
     qIndex = qi;
@@ -213,12 +209,15 @@ function handlePhase(phase, qi) {
     showQuestion();
     return;
   }
+  if (phase === 'reveal') {
+    showReveal();
+    return;
+  }
   if (phase === 'finished') {
     clearInterval(pollInterval);
     submitAndShowResult();
     return;
   }
-  // reveal・leaderboard はそのまま待機
 }
 
 function showQuestion() {
@@ -237,6 +236,17 @@ function showQuestion() {
   ).join('');
   setScreen('screen-question');
   startTimer();
+}
+
+function showReveal() {
+  const q = questions[qIndex];
+  const a = answers[qIndex];
+  const correct = a ? a.correct : false;
+  const pts = a ? a.pts : 0;
+  document.getElementById('ans-icon').textContent = correct ? '○' : '×';
+  document.getElementById('ans-result').textContent = correct ? `正解！ +${pts}pt` : `不正解`;
+  document.getElementById('ans-pts').textContent = q.explanation;
+  setScreen('screen-answered');
 }
 
 function startTimer() {
