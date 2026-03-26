@@ -184,7 +184,7 @@ async function joinGame() {
 
 function startPolling() {
   console.log('polling start');
-  pollInterval = setInterval(syncState, 2500);
+  setTimeout(syncState, 1000);
 }
 
 async function syncState() {
