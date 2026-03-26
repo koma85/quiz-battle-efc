@@ -200,31 +200,18 @@ async function syncState() {
 }
 
 function handlePhase(phase, qi) {
-  if (phase === 'question' && qi !== qIndex || phase === 'question' && answered === false && document.getElementById('screen-waiting').classList.contains('active')) {
+  if (phase === 'question') {
     qIndex = qi;
     answered = false;
     showQuestion();
-  }
-  if (phase === 'question' && qi !== qIndex) {
-    qIndex = qi;
-    answered = false;
-    showQuestion();
-  }
-  if (phase === 'reveal' && document.getElementById('screen-answered').classList.contains('active')) {
-    // そのまま待機継続
-  }
-  if (phase === 'leaderboard' && document.getElementById('screen-answered').classList.contains('active')) {
-    // そのまま待機継続
-  }
-  if (phase === 'question' && qi > qIndex) {
-    qIndex = qi;
-    answered = false;
-    showQuestion();
+    return;
   }
   if (phase === 'finished') {
     clearInterval(pollInterval);
     submitAndShowResult();
+    return;
   }
+  // reveal・leaderboard はそのまま待機
 }
 
 function showQuestion() {
