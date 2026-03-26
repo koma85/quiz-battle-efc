@@ -172,7 +172,7 @@ function setScreen(id) {
 }
 
 async function verifyKey() {
-  const input = document.getElementById('key-input').value.trim().toUpperCase();
+  const input =document.getElementById('key-input').value.trim();
   const err = document.getElementById('key-err');
   err.textContent = '';
   try {
