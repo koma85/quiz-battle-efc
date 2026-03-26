@@ -194,7 +194,9 @@ async function syncState() {
     lastPhase = phase;
     lastQIndex = qi;
     handlePhase(phase, qi);
-  } catch(e) {}
+  } catch(e) {
+    console.log('syncState error:', e);
+  }
 }
 
 function handlePhase(phase, qi) {
