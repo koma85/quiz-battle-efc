@@ -175,6 +175,7 @@ async function joinGame() {
     if (!questions.length) throw new Error('問題データが取得できませんでした');
     document.getElementById('waiting-name').textContent = `${playerName} さん、参加完了`;
     setScreen('screen-waiting');
+    console.log('before startPolling');
     startPolling();
   } catch(e) {
     document.getElementById('join-err').textContent = '接続に失敗しました。もう一度お試しください。';
