@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz Battle</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f5f5f3; --surface: #fff;
+  --border: rgba(0,0,0,0.12); --border-mid: rgba(0,0,0,0.2);
+  --text: #1a1a18; --text-2: #5f5e5a; --text-3: #888780;
+  --blue: #185FA5; --blue-bg: #E6F1FB; --blue-text: #0C447C;
+  --green: #3B6D11; --green-bg: #EAF3DE; --green-text: #27500A;
+  --red: #A32D2D; --red-bg: #FCEBEB; --red-text: #791F1F;
+  --radius: 12px; --radius-sm: 8px;
+}
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+.wrap { max-width: 420px; margin: 0 auto; padding: 1.5rem 1rem; }
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* join */
+.join { text-align: center; padding-top: 3rem; }
+.join h2 { font-size: 22px; font-weight: 500; margin-bottom: 0.5rem; }
+.join p { font-size: 14px; color: var(--text-2); margin-bottom: 2rem; line-height: 1.6; }
+.input { width: 100%; padding: 12px 14px; font-size: 16px; border: 0.5px solid var(--border-mid); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); margin-bottom: 10px; outline: none; }
+.input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(24,95,165,0.1); }
+.btn { width: 100%; padding: 13px; font-size: 15px; font-weight: 500; background: var(--blue); color: #fff; border: none; border-radius: var(--radius-sm); cursor: pointer; }
+.btn:disabled { background: var(--border-mid); cursor: default; }
+.err { font-size: 13px; color: var(--red); margin-top: 8px; min-height: 18px; }
+
+/* waiting */
+.waiting { text-align: center; padding: 4rem 1rem; }
+.waiting h2 { font-size: 20px; font-weight: 500; margin-bottom: 0.5rem; }
+.waiting p { font-size: 14px; color: var(--text-2); }
+.pulse { display: inline-block; width: 10px; height: 10px; background: #4ade80; border-radius: 50%; margin-right: 6px; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.8)} }
+
+/* question */
+.q-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.q-score { font-size: 13px; color: var(--text-2); }
+.q-score strong { color: var(--text); font-weight: 500; }
+.q-num { font-size: 13px; color: var(--text-3); }
+.timer-wrap { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 1.25rem; overflow: hidden; }
+.timer-bar { height: 100%; background: var(--blue); border-radius: 2px; transition: width 0.25s linear, background 0.3s; }
+.q-category { font-size: 11px; color: var(--text-3); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.5rem; }
+.q-text { font-size: 18px; font-weight: 500; line-height: 1.6; margin-bottom: 1.5rem; }
+.choices { display: grid; gap: 10px; margin-bottom: 1rem; }
+.choice { background: var(--surface); border: 0.5px solid var(--border-mid); border-radius: var(--radius); padding: 14px 16px; font-size: 15px; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 12px; color: var(--text); }
+.choice:hover:not(:disabled) { background: var(--blue-bg); border-color: var(--blue); }
+.choice.selected { border: 2px solid var(--blue); color: var(--blue-text); }
+.choice.correct { background: var(--green-bg); border-color: var(--green); color: var(--green-text); }
+.choice.wrong { background: var(--red-bg); border-color: var(--red); color: var(--red-text); }
+.choice.reveal { background: var(--green-bg); border-color: var(--green); color: var(--green-text); }
+.choice:disabled { cursor: default; }
+.c-label { width: 26px; height: 26px; border-radius: 50%; background: var(--bg); border: 0.5px solid var(--border-mid); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0; }
+.feedback { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; font-size: 13px; color: var(--text-2); line-height: 1.6; }
+.feedback.correct { background: var(--green-bg); color: var(--green-text); border-color: var(--green); }
+.feedback.wrong { background: var(--red-bg); color: var(--red-text); border-color: var(--red); }
+
+/* answered wait */
+.answered-wait { text-align: center; padding: 3rem 1rem; }
+.answered-wait .icon { font-size: 48px; margin-bottom: 1rem; }
+.answered-wait h3 { font-size: 20px; font-weight: 500; margin-bottom: 0.5rem; }
+.answered-wait p { font-size: 14px; color: var(--text-2); }
+.pts { font-size: 28px; font-weight: 500; color: var(--blue-text); margin-top: 1rem; }
+
+/* sending */
+.sending { text-align: center; padding: 4rem 1rem; }
+.sending p { font-size: 15px; color: var(--text-2); }
+
+/* result */
+.result { text-align: center; padding: 2rem 0; }
+.result-score { font-size: 64px; font-weight: 500; color: var(--blue); line-height: 1; margin-bottom: 0.25rem; }
+.result-label { font-size: 13px; color: var(--text-2); margin-bottom: 0.5rem; }
+.result-msg { font-size: 20px; font-weight: 500; margin-bottom: 2rem; }
+.lb { text-align: left; }
+.lb-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-sm); margin-bottom: 6px; background: var(--surface); border: 0.5px solid var(--border); }
+.lb-row.me { border-color: var(--blue); background: var(--blue-bg); }
+.lb-rank { font-size: 14px; font-weight: 500; width: 22px; text-align: center; color: var(--text-3); }
+.lb-name { flex: 1; font-size: 14px; }
+.lb-score { font-size: 14px; font-weight: 500; color: var(--blue-text); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div id="screen-join" class="screen active">
+  <div class="join">
+    <h2>クイズバトルに参加</h2>
+    <p>名前を入力して参加してください</p>
+    <input class="input" id="name-input" type="text" placeholder="例：田中" maxlength="16"
+      oninput="document.getElementById('join-btn').disabled=!this.value.trim()">
+    <button class="btn" id="join-btn" disabled onclick="joinGame()">参加する</button>
+    <div class="err" id="join-err"></div>
+  </div>
+</div>
+
+<div id="screen-waiting" class="screen">
+  <div class="waiting">
+    <div style="margin-bottom:1.5rem;"><span class="pulse"></span></div>
+    <h2 id="waiting-name"></h2>
+    <p>ホストがゲームを開始するまでお待ちください</p>
+  </div>
+</div>
+
+<div id="screen-question" class="screen">
+  <div class="q-header">
+    <span class="q-score">スコア <strong id="score-val">0</strong></span>
+    <span class="q-num" id="q-num">1 / 5</span>
+  </div>
+  <div class="timer-wrap"><div class="timer-bar" id="timer-bar"></div></div>
+  <p class="q-category" id="q-category"></p>
+  <p class="q-text" id="q-text"></p>
+  <div class="choices" id="choices"></div>
+  <div class="feedback" id="feedback">回答を選んでください</div>
+</div>
+
+<div id="screen-answered" class="screen">
+  <div class="answered-wait">
+    <div class="icon" id="ans-icon"></div>
+    <h3 id="ans-result"></h3>
+    <p>ホストが正解を発表するまでお待ちください</p>
+    <div class="pts" id="ans-pts"></div>
+  </div>
+</div>
+
+<div id="screen-sending" class="screen">
+  <div class="sending">
+    <p>回答を送信しています...</p>
+  </div>
+</div>
+
+<div id="screen-result" class="screen">
+  <div class="result">
+    <div class="result-label">あなたの得点</div>
+    <div class="result-score" id="result-score"></div>
+    <div class="result-msg" id="result-msg"></div>
+    <div class="lb" id="result-lb"></div>
+  </div>
+</div>
+
+</div>
+<script>
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwQqLYTKPc-Pg-faoiVETZ5GTjKkZqThLFaxP4bEr4VRPzHIKC7XBMgFQKd0HPUyneA/exec';
+const TIMER_SEC = 15;
+const LABELS = ['A','B','C','D'];
+
+let playerName = '';
+let questions = [];
+let qIndex = 0;
+let score = 0;
+let answers = []; // { qIndex, selectedIdx, correct, pts }
+let timerInterval = null;
+let timeLeft = TIMER_SEC;
+let answered = false;
+let pollInterval = null;
+let lastPhase = '';
+let lastQIndex = -1;
+
+function setScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+async function joinGame() {
+  const name = document.getElementById('name-input').value.trim();
+  if (!name) return;
+  playerName = name;
+  document.getElementById('join-err').textContent = '';
+  try {
+    const res = await fetch(`${GAS_URL}?type=questions&referer=${location.origin}`);
+    questions = await res.json();
+    if (!questions.length) throw new Error('問題データが取得できませんでした');
+    document.getElementById('waiting-name').textContent = `${playerName} さん、参加完了`;
+    setScreen('screen-waiting');
+    startPolling();
+  } catch(e) {
+    document.getElementById('join-err').textContent = '接続に失敗しました。もう一度お試しください。';
+  }
+}
+
+function startPolling() {
+  pollInterval = setInterval(syncState, 2500);
+}
+
+async function syncState() {
+  try {
+    const res = await fetch(`${GAS_URL}?type=state&referer=${location.origin}`);
+    const data = await res.json();
+    const { phase, qIndex: qi } = data;
+    if (phase === lastPhase && qi === lastQIndex) return;
+    lastPhase = phase;
+    lastQIndex = qi;
+    handlePhase(phase, qi);
+  } catch(e) {}
+}
+
+function handlePhase(phase, qi) {
+  if (phase === 'question' && qi !== qIndex || phase === 'question' && answered === false && document.getElementById('screen-waiting').classList.contains('active')) {
+    qIndex = qi;
+    answered = false;
+    showQuestion();
+  }
+  if (phase === 'question' && qi !== qIndex) {
+    qIndex = qi;
+    answered = false;
+    showQuestion();
+  }
+  if (phase === 'reveal' && document.getElementById('screen-answered').classList.contains('active')) {
+    // そのまま待機継続
+  }
+  if (phase === 'leaderboard' && document.getElementById('screen-answered').classList.contains('active')) {
+    // そのまま待機継続
+  }
+  if (phase === 'question' && qi > qIndex) {
+    qIndex = qi;
+    answered = false;
+    showQuestion();
+  }
+  if (phase === 'finished') {
+    clearInterval(pollInterval);
+    submitAndShowResult();
+  }
+}
+
+function showQuestion() {
+  const q = questions[qIndex];
+  score = score; // 累積
+  document.getElementById('score-val').textContent = score;
+  document.getElementById('q-num').textContent = `${qIndex+1} / ${questions.length}`;
+  document.getElementById('q-category').textContent = q.category;
+  document.getElementById('q-text').textContent = q.question;
+  document.getElementById('feedback').textContent = '回答を選んでください';
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('choices').innerHTML = q.choices.map((c,i) =>
+    `<button class="choice" onclick="selectAnswer(${i})">
+      <div class="c-label">${LABELS[i]}</div>${c}
+    </button>`
+  ).join('');
+  setScreen('screen-question');
+  startTimer();
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timeLeft = TIMER_SEC;
+  updateTimerBar();
+  timerInterval = setInterval(() => {
+    timeLeft -= 0.25;
+    if (timeLeft <= 0) {
+      timeLeft = 0;
+      clearInterval(timerInterval);
+      if (!answered) timeUp();
+    }
+    updateTimerBar();
+  }, 250);
+}
+
+function updateTimerBar() {
+  const pct = Math.max(0, (timeLeft / TIMER_SEC) * 100);
+  const bar = document.getElementById('timer-bar');
+  bar.style.width = pct + '%';
+  bar.style.background = pct > 40 ? '#185FA5' : pct > 20 ? '#BA7517' : '#A32D2D';
+}
+
+function timeUp() {
+  answered = true;
+  const q = questions[qIndex];
+  document.querySelectorAll('.choice').forEach(b => b.disabled = true);
+  answers.push({ qIndex, selectedIdx: -1, correct: false, pts: 0 });
+  document.getElementById('ans-icon').textContent = '×';
+  document.getElementById('ans-result').textContent = '時間切れ';
+  document.getElementById('ans-pts').textContent = '+0 pt';
+  setScreen('screen-answered');
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+  clearInterval(timerInterval);
+  const q = questions[qIndex];
+  const correct = idx === q.answer;
+  const pts = correct ? Math.max(10, Math.round((timeLeft / TIMER_SEC) * 100)) : 0;
+  score += pts;
+  answers.push({ qIndex, selectedIdx: idx, correct, pts });
+
+  const btns = document.querySelectorAll('.choice');
+  btns.forEach(b => b.disabled = true);
+  btns[idx].classList.add(correct ? 'correct' : 'wrong');
+  if (!correct) btns[q.answer].classList.add('reveal');
+
+  document.getElementById('ans-icon').textContent = correct ? '○' : '×';
+  document.getElementById('ans-result').textContent = correct ? '正解！' : '不正解';
+  document.getElementById('ans-pts').textContent = `+${pts} pt`;
+  setScreen('screen-answered');
+}
+
+async function submitAndShowResult() {
+  setScreen('screen-sending');
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'submit',
+        referer: location.origin,
+        name: playerName,
+        score,
+        detail: answers,
+      }),
+    });
+  } catch(e) {}
+  await showResult();
+}
+
+async function showResult() {
+  let ranking = [];
+  try {
+    const res = await fetch(`${GAS_URL}?type=ranking&referer=${location.origin}`);
+    ranking = await res.json();
+  } catch(e) {}
+  const myRank = ranking.findIndex(p => p.name === playerName) + 1;
+  const msgs = ['優勝！', '2位入賞！', '3位入賞！'];
+  const msg = myRank >= 1 && myRank <= 3 ? msgs[myRank-1] : 'お疲れさまでした';
+  document.getElementById('result-score').textContent = score;
+  document.getElementById('result-msg').textContent = msg;
+  document.getElementById('result-lb').innerHTML = ranking.map((p,i) =>
+    `<div class="lb-row${p.name===playerName?' me':''}">
+      <div class="lb-rank">${i+1}</div>
+      <div class="lb-name">${p.name}</div>
+      <div class="lb-score">${p.score}</div>
+    </div>`
+  ).join('');
+  setScreen('screen-result');
+}
+</script>
+</body>
+</html>
