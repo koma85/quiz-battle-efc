@@ -176,7 +176,7 @@ async function verifyKey() {
   const err = document.getElementById('key-err');
   err.textContent = '';
   try {
-    const res = await fetch(`${GAS_URL}?type=state`);
+    const res = await fetch(`${GAS_URL}?type=state&referer=${location.origin}`);
     const data = await res.json();
     if (input === data.hostKey) {
       hostKey = input;
