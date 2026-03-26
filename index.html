@@ -244,8 +244,9 @@ function showReveal() {
   const correct = a ? a.correct : false;
   const pts = a ? a.pts : 0;
   document.getElementById('ans-icon').textContent = correct ? '○' : '×';
-  document.getElementById('ans-result').textContent = correct ? `正解！ +${pts}pt` : `不正解`;
+  document.getElementById('ans-result').textContent = correct ? `正解！ +${pts}pt` : '不正解';
   document.getElementById('ans-pts').textContent = q.explanation;
+  document.getElementById('answered-wait-msg').textContent = '次の問題をお待ちください';
   setScreen('screen-answered');
 }
 
