@@ -102,7 +102,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     <span class="q-num" id="q-num">Q1</span>
     <span class="q-category" id="q-category"></span>
   </div>
-  <div class="timer" id="timer">15</div>
   <div class="question-text" id="question-text"></div>
   <div class="choices" id="choices"></div>
   <div class="answer-bar">
@@ -226,28 +225,7 @@ function showQuestion() {
     `<div class="choice"><div class="choice-label">${LABELS[i]}</div>${c}</div>`
   ).join('');
   setScreen('screen-question');
-  startTimer();
   pollAnswers();
-}
-
-function startTimer() {
-  clearInterval(timerInterval);
-  timeLeft = TIMER_SEC;
-  updateTimer();
-  timerInterval = setInterval(() => {
-    timeLeft -= 0.25;
-    if (timeLeft <= 0) {
-      timeLeft = 0;
-      clearInterval(timerInterval);
-    }
-    updateTimer();
-  }, 250);
-}
-
-function updateTimer() {
-  const el = document.getElementById('timer');
-  el.textContent = Math.ceil(timeLeft);
-  el.style.color = timeLeft > 8 ? '#fff' : timeLeft > 4 ? '#fbbf24' : '#ef4444';
 }
 
 function pollAnswers() {
@@ -258,7 +236,7 @@ function pollAnswers() {
         const data = await res.json();
         const count = data.filter(p => p.qIndex === qIndex).length;
         document.getElementById('ans-count').textContent = count;
-        const pct = totalPlayers > 0 ? Math.round(count / totalPlayers * 100) : 0;
+        const pts = correct ? 100 : 0;
         document.getElementById('ans-bar-fill').style.width = pct + '%';
         document.getElementById('ans-bar-label').textContent = `${count}人`;
       } catch(e) {}
@@ -269,7 +247,6 @@ function pollAnswers() {
 }
 
 async function hostReveal() {
-  clearInterval(timerInterval);
   await postState('reveal', qIndex);
   const q = questions[qIndex];
   document.getElementById('reveal-label').textContent = `問題 ${qIndex+1} — 正解発表`;
