@@ -183,7 +183,7 @@ async function verifyKey() {
       await loadQuestions();
       setScreen('screen-waiting');
     } else {
-      err.textContent = 'キーが正しくありません';
+      err.textContent = 'キーが違います。入力:「${input}」取得:「${data.hostKey}」';
     }
   } catch(e) {
     err.textContent = '接続に失敗しました';
