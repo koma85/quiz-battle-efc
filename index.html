@@ -182,6 +182,7 @@ async function joinGame() {
 }
 
 function startPolling() {
+  console.log('polling start');
   pollInterval = setInterval(syncState, 2500);
 }
 
@@ -195,7 +196,7 @@ async function syncState() {
     lastQIndex = qi;
     handlePhase(phase, qi);
   } catch(e) {
-    console.log('syncState error:', e);
+    console.log('syncState error:', e);startpolling
   }
 }
 
