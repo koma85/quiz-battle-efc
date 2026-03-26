@@ -197,7 +197,7 @@ async function syncState() {
     lastQIndex = qi;
     handlePhase(phase, qi);
   } catch(e) {
-    console.log('syncState error:', e);startpolling
+   console.log('syncState error:', e.message);
   }
 }
 
