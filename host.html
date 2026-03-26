@@ -191,7 +191,7 @@ async function verifyKey() {
 }
 
 async function loadQuestions() {
-  const res = await fetch(`${GAS_URL}?type=questions`);
+  const res = await fetch(`${GAS_URL}?type=questions&referer=${location.origin}`);
   questions = await res.json();
 }
 
